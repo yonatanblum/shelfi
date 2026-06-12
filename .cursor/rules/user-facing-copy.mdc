@@ -1,0 +1,28 @@
+---
+description: "User-visible copy — no internal diagnostics in UI or browser API payloads"
+alwaysApply: true
+---
+
+# User-facing copy and API messages
+
+## Scope
+
+Applies to **toasts**, **alerts**, **form errors**, **in-app banners**, and **JSON fields** returned to the browser that end users see (e.g. `message` / `error` on `ApiResponse`, import-url results).
+
+## Rules
+
+1. **Never show to users** (or in browser-consumed strings):
+   - Stack traces, `Call log`, `page.goto`, Playwright/Puppeteer output
+   - Raw network errors: `net::ERR_`, `HTTP/2 PROTOCOL_ERROR`, `ECONNRESET`, status-only lines like `HTTP 403`
+   - Server paths, `pnpm`/`npx` commands, env var names, container/Docker hints
+   - Prisma/SQL fragments, internal correlation IDs (unless product explicitly documents them for support)
+
+2. **Do show** short, actionable, non-technical phrasing (or use **empty** `message` so the client falls back to **localized content** from `apps/web/config/content/*`).
+
+3. **Technical detail** belongs in **server logs**, **structured logging**, or **monitoring** only — never copy `Error.message` from automation libraries into user-visible API fields.
+
+4. When adding a new user-visible error path, prefer **one approved string** in content config + empty server `message`, or a **vetted** product string — not a concatenation of internal errors.
+
+## Cross-reference
+
+See also `.cursor/skills/user-facing-error-messages/SKILL.md`.
