@@ -12,6 +12,11 @@ export type ShelfAnalysisDiagnostics = {
   responseBytes: number;
   shelvesDetected: number;
   itemsDetected: number;
+  promptTokenCount?: number;
+  outputTokenCount?: number;
+  thoughtsTokenCount?: number;
+  totalTokenCount?: number;
+  estimatedCostUsd?: number | null;
 };
 
 export type ShelfAnalysisTiming = ShelfAnalysisPhaseTiming &

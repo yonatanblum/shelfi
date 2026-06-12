@@ -139,6 +139,14 @@ export async function analyzeAndPersistSavedShelfImage(
           responseBytes: extracted.responseBytes,
           shelvesDetected: 0,
           itemsDetected: 0,
+          promptTokenCount: extracted.tokenUsage?.promptTokenCount,
+          outputTokenCount: extracted.tokenUsage
+            ? extracted.tokenUsage.candidatesTokenCount +
+              extracted.tokenUsage.thoughtsTokenCount
+            : undefined,
+          thoughtsTokenCount: extracted.tokenUsage?.thoughtsTokenCount,
+          totalTokenCount: extracted.tokenUsage?.totalTokenCount,
+          estimatedCostUsd: extracted.estimatedCostUsd,
         },
       };
     }
@@ -154,6 +162,10 @@ export async function analyzeAndPersistSavedShelfImage(
       (total, shelf) => total + shelf.items.length,
       0,
     );
+    const outputTokenCount = extracted.tokenUsage
+      ? extracted.tokenUsage.candidatesTokenCount +
+        extracted.tokenUsage.thoughtsTokenCount
+      : undefined;
     const timing: ShelfAnalysisTiming = {
       writeFileMs: readFileMs,
       geminiMs: extracted.geminiMs,
@@ -165,6 +177,11 @@ export async function analyzeAndPersistSavedShelfImage(
       responseBytes: extracted.responseBytes,
       shelvesDetected: extracted.analysis.shelves.length,
       itemsDetected,
+      promptTokenCount: extracted.tokenUsage?.promptTokenCount,
+      outputTokenCount,
+      thoughtsTokenCount: extracted.tokenUsage?.thoughtsTokenCount,
+      totalTokenCount: extracted.tokenUsage?.totalTokenCount,
+      estimatedCostUsd: extracted.estimatedCostUsd,
     };
 
     logAnalysisCompleted(logContext, timing, timing);

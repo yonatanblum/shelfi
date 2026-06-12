@@ -1,3 +1,5 @@
+import type { GeminiTokenUsage } from "@/lib/gemini/gemini-pricing";
+import { formatCostUsd } from "@/lib/gemini/gemini-pricing";
 import type {
   ShelfAnalysisDiagnostics,
   ShelfAnalysisPhaseTiming,
@@ -47,11 +49,17 @@ export function logGeminiStarted(
   context: AnalysisLogContext,
   model: string,
   imageSizeBytes: number,
+  options?: {
+    mediaResolution?: string;
+    thinkingLevel?: string;
+  },
 ): void {
   logPayload("gemini_started", context, {
     model,
     imageSizeBytes,
     imageSizeLabel: formatBytes(imageSizeBytes),
+    mediaResolution: options?.mediaResolution,
+    thinkingLevel: options?.thinkingLevel,
   });
 }
 
@@ -62,12 +70,30 @@ export function logGeminiCompleted(
   diagnostics: Pick<
     ShelfAnalysisDiagnostics,
     "responseBytes" | "shelvesDetected" | "itemsDetected"
-  >,
+  > & {
+    tokenUsage?: GeminiTokenUsage | null;
+    estimatedCostUsd?: number | null;
+  },
 ): void {
   logPayload("gemini_completed", context, {
     geminiMs,
     parseMs,
-    ...diagnostics,
+    responseBytes: diagnostics.responseBytes,
+    shelvesDetected: diagnostics.shelvesDetected,
+    itemsDetected: diagnostics.itemsDetected,
+    promptTokenCount: diagnostics.tokenUsage?.promptTokenCount,
+    outputTokenCount: diagnostics.tokenUsage
+      ? diagnostics.tokenUsage.candidatesTokenCount +
+        diagnostics.tokenUsage.thoughtsTokenCount
+      : undefined,
+    thoughtsTokenCount: diagnostics.tokenUsage?.thoughtsTokenCount,
+    totalTokenCount: diagnostics.tokenUsage?.totalTokenCount,
+    estimatedCostUsd: diagnostics.estimatedCostUsd ?? undefined,
+    estimatedCostLabel:
+      diagnostics.estimatedCostUsd === null ||
+      diagnostics.estimatedCostUsd === undefined
+        ? undefined
+        : formatCostUsd(diagnostics.estimatedCostUsd),
   });
 }
 

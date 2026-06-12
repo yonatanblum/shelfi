@@ -1,27 +1,27 @@
-import { SchemaType, type Schema } from "@google/generative-ai";
+import { Type, type Schema } from "@google/genai";
 
 const PRICE_TAG_SCHEMA: Schema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
-    detected: { type: SchemaType.BOOLEAN },
-    amount: { type: SchemaType.NUMBER, nullable: true },
-    currency: { type: SchemaType.STRING, nullable: true },
+    detected: { type: Type.BOOLEAN },
+    amount: { type: Type.NUMBER, nullable: true },
+    currency: { type: Type.STRING, nullable: true },
   },
   required: ["detected", "amount", "currency"],
 };
 
 const SHELF_ITEM_SCHEMA: Schema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
-    item_id: { type: SchemaType.STRING },
-    brand: { type: SchemaType.STRING },
-    product_name: { type: SchemaType.STRING },
-    packaging_variant: { type: SchemaType.STRING },
-    visible_facings: { type: SchemaType.NUMBER },
-    is_stacked: { type: SchemaType.BOOLEAN },
-    is_nested: { type: SchemaType.BOOLEAN },
+    item_id: { type: Type.STRING },
+    brand: { type: Type.STRING },
+    product_name: { type: Type.STRING },
+    packaging_variant: { type: Type.STRING },
+    visible_facings: { type: Type.NUMBER },
+    is_stacked: { type: Type.BOOLEAN },
+    is_nested: { type: Type.BOOLEAN },
     price_tag: PRICE_TAG_SCHEMA,
-    visual_notes: { type: SchemaType.STRING },
+    visual_notes: { type: Type.STRING },
   },
   required: [
     "item_id",
@@ -37,13 +37,13 @@ const SHELF_ITEM_SCHEMA: Schema = {
 };
 
 const SHELF_SCHEMA: Schema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
-    shelf_level: { type: SchemaType.NUMBER },
-    position_description: { type: SchemaType.STRING },
-    zone_quality: { type: SchemaType.STRING },
+    shelf_level: { type: Type.NUMBER },
+    position_description: { type: Type.STRING },
+    zone_quality: { type: Type.STRING },
     items: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: SHELF_ITEM_SCHEMA,
     },
   },
@@ -51,17 +51,17 @@ const SHELF_SCHEMA: Schema = {
 };
 
 export const SHELF_ANALYSIS_RESPONSE_SCHEMA: Schema = {
-  type: SchemaType.OBJECT,
+  type: Type.OBJECT,
   properties: {
-    poc_project: { type: SchemaType.STRING },
-    target_client: { type: SchemaType.STRING },
-    source_image: { type: SchemaType.STRING },
+    poc_project: { type: Type.STRING },
+    target_client: { type: Type.STRING },
+    source_image: { type: Type.STRING },
     metadata: {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
-        total_shelves_detected: { type: SchemaType.NUMBER },
-        estimated_unique_items_with_variants: { type: SchemaType.NUMBER },
-        confidence_score: { type: SchemaType.NUMBER },
+        total_shelves_detected: { type: Type.NUMBER },
+        estimated_unique_items_with_variants: { type: Type.NUMBER },
+        confidence_score: { type: Type.NUMBER },
       },
       required: [
         "total_shelves_detected",
@@ -70,31 +70,31 @@ export const SHELF_ANALYSIS_RESPONSE_SCHEMA: Schema = {
       ],
     },
     shelf_statistics_summary: {
-      type: SchemaType.OBJECT,
+      type: Type.OBJECT,
       properties: {
         share_of_shelf_by_brand_percent: {
-          type: SchemaType.ARRAY,
+          type: Type.ARRAY,
           items: {
-            type: SchemaType.OBJECT,
+            type: Type.OBJECT,
             properties: {
-              brand: { type: SchemaType.STRING },
-              percent: { type: SchemaType.NUMBER },
+              brand: { type: Type.STRING },
+              percent: { type: Type.NUMBER },
             },
             required: ["brand", "percent"],
           },
         },
         premium_placement_utilization_percent: {
-          type: SchemaType.ARRAY,
+          type: Type.ARRAY,
           items: {
-            type: SchemaType.OBJECT,
+            type: Type.OBJECT,
             properties: {
-              brand: { type: SchemaType.STRING },
-              percent: { type: SchemaType.NUMBER },
+              brand: { type: Type.STRING },
+              percent: { type: Type.NUMBER },
             },
             required: ["brand", "percent"],
           },
         },
-        overall_price_tag_compliance_percent: { type: SchemaType.NUMBER },
+        overall_price_tag_compliance_percent: { type: Type.NUMBER },
       },
       required: [
         "share_of_shelf_by_brand_percent",
@@ -103,7 +103,7 @@ export const SHELF_ANALYSIS_RESPONSE_SCHEMA: Schema = {
       ],
     },
     shelves: {
-      type: SchemaType.ARRAY,
+      type: Type.ARRAY,
       items: SHELF_SCHEMA,
     },
   },

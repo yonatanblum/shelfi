@@ -7,6 +7,7 @@ import {
   analyzeAndPersistSavedShelfImage,
   saveShelfImageForAnalysis,
 } from "@/app/actions/shelf-analysis";
+import { formatCostUsd } from "@/lib/gemini/gemini-pricing";
 import { UPLOAD_CONFIG } from "@/constants/upload-config";
 import {
   appendLog,
@@ -179,7 +180,11 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
       patchJob(jobId, (job) =>
         appendLog(
           job,
-          `Gemini finished in ${formatDuration(timing.geminiMs)} — ${timing.shelvesDetected} shelves, ${timing.itemsDetected} items (${formatBytes(timing.responseBytes)} JSON).`,
+          `Gemini finished in ${formatDuration(timing.geminiMs)} — ${timing.shelvesDetected} shelves, ${timing.itemsDetected} items (${formatBytes(timing.responseBytes)} JSON)${
+            timing.estimatedCostUsd != null
+              ? `, est. ${formatCostUsd(timing.estimatedCostUsd)}`
+              : ""
+          }.`,
         ),
       );
 
