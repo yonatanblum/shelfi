@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "ShelfAnalysis" (
     "shareOfShelfByBrand" JSONB NOT NULL,
     "premiumPlacementUtilization" JSONB NOT NULL,
     "overallPriceTagCompliance" REAL NOT NULL,
-    "uploadedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- CreateTable

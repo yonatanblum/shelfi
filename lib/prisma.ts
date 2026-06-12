@@ -1,15 +1,25 @@
 import path from "node:path";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
 import { PrismaClient } from "@/lib/generated/prisma/client";
 
-const PRISMA_CLIENT_VERSION = "shelf-analysis-v2";
+const PRISMA_CLIENT_VERSION = "shelf-analysis-v3";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
   prismaClientVersion: string | undefined;
+  pgPool: Pool | undefined;
 };
 
-function resolveDatabaseUrl(): string {
+function isPostgresUrl(databaseUrl: string | undefined): boolean {
+  return (
+    databaseUrl?.startsWith("postgres://") === true ||
+    databaseUrl?.startsWith("postgresql://") === true
+  );
+}
+
+function resolveSqliteDatabaseUrl(): string {
   const configuredUrl = process.env.DATABASE_URL;
   const defaultPath = path.join(process.cwd(), "dev.db");
 
@@ -26,8 +36,29 @@ function resolveDatabaseUrl(): string {
 }
 
 function createPrismaClient(): PrismaClient {
-  const databaseUrl = resolveDatabaseUrl();
-  const adapter = new PrismaBetterSqlite3({ url: databaseUrl });
+  const databaseUrl = process.env.DATABASE_URL;
+
+  if (isPostgresUrl(databaseUrl)) {
+    const pool =
+      globalForPrisma.pgPool ?? new Pool({ connectionString: databaseUrl });
+
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.pgPool = pool;
+    }
+
+    const adapter = new PrismaPg(pool);
+
+    return new PrismaClient({
+      adapter,
+      log:
+        process.env.NODE_ENV === "development"
+          ? ["query", "error", "warn"]
+          : ["error"],
+    });
+  }
+
+  const sqliteUrl = resolveSqliteDatabaseUrl();
+  const adapter = new PrismaBetterSqlite3({ url: sqliteUrl });
 
   return new PrismaClient({
     adapter,
