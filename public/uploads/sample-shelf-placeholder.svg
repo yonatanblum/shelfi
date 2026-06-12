@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480" role="img" aria-label="Sample shelf placeholder">
+  <rect width="640" height="480" fill="#E2E8F0"/>
+  <rect x="48" y="48" width="544" height="72" fill="#CBD5E1" stroke="#0F172A" stroke-width="4"/>
+  <rect x="48" y="136" width="544" height="72" fill="#CBD5E1" stroke="#0F172A" stroke-width="4"/>
+  <rect x="48" y="224" width="544" height="72" fill="#CBD5E1" stroke="#0F172A" stroke-width="4"/>
+  <rect x="48" y="312" width="544" height="72" fill="#CBD5E1" stroke="#0F172A" stroke-width="4"/>
+  <text x="320" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#334155">Sample Shelf Analysis</text>
+</svg>
