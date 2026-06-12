@@ -1,0 +1,466 @@
+{
+  "poc_project": "Retail Shelf Image Analysis",
+  "target_client": "Nissim",
+  "source_image": "IMG_2879.jpg",
+  "metadata": {
+    "total_shelves_detected": 7,
+    "estimated_unique_items_with_variants": 29,
+    "confidence_score": 0.88
+  },
+  "shelf_statistics_summary": {
+    "share_of_shelf_by_brand_percent": {
+      "Play Day": 30.0,
+      "Nerf": 25.0,
+      "X-Shot": 10.0,
+      "Zuru": 10.0,
+      "Other/Unknown": 25.0
+    },
+    "premium_placement_utilization_percent": {
+      "Nerf": 100.0,
+      "Play Day": 20.0,
+      "X-Shot": 66.6
+    },
+    "overall_price_tag_compliance_percent": 85.0
+  },
+  "shelves": [
+    {
+      "shelf_level": 1,
+      "position_description": "Top Shelf",
+      "zone_quality": "High - Visibility only for adults",
+      "items": [
+        {
+          "item_id": "SKU-PD-001",
+          "brand": "Play Day",
+          "product_name": "Foldable Soccer Set",
+          "packaging_variant": "Standard Blue/Green Box",
+          "visible_facings": 3,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": 19.97,
+            "currency": "USD"
+          },
+          "visual_notes": "Uniform arrangement, fully compliant"
+        }
+      ]
+    },
+    {
+      "shelf_level": 2,
+      "position_description": "Upper Middle Shelf",
+      "zone_quality": "Premium - Eye Level",
+      "items": [
+        {
+          "item_id": "SKU-NRF-001",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Stomp Soak",
+          "packaging_variant": "Standard Orange Box",
+          "visible_facings": 2,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": false,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Stacked vertically on top of each other"
+        },
+        {
+          "item_id": "SKU-NRF-002",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Dunk-Fill Duo",
+          "packaging_variant": "Green and Pink Blasters Artwork",
+          "visible_facings": 2,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Stacked vertically, price tag present on rail"
+        },
+        {
+          "item_id": "SKU-NRF-003",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Power Drench",
+          "packaging_variant": "Blue Blaster Artwork",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Single facing prominent"
+        },
+        {
+          "item_id": "SKU-XS-001",
+          "brand": "X-Shot",
+          "product_name": "Skins Blaster",
+          "packaging_variant": "Blue/White Skins Theme",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Partially cut off by the right edge of the frame"
+        }
+      ]
+    },
+    {
+      "shelf_level": 3,
+      "position_description": "Middle Shelf",
+      "zone_quality": "Premium - Eye Level / Golden Triangle",
+      "items": [
+        {
+          "item_id": "SKU-UNK-001",
+          "brand": "Unknown",
+          "product_name": "Team Football Bowling Set",
+          "packaging_variant": "Red Bowling Pins Visible",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Left side placement"
+        },
+        {
+          "item_id": "SKU-NRF-004",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Large Blaster",
+          "packaging_variant": "Orange/Blue Large Box",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Horizontal large box"
+        },
+        {
+          "item_id": "SKU-NRF-005",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Mega Dunk-Fill",
+          "packaging_variant": "Large Blue/Orange Box",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Centrally placed large item"
+        },
+        {
+          "item_id": "SKU-XS-002",
+          "brand": "X-Shot",
+          "product_name": "Skins Blaster Multi-pack",
+          "packaging_variant": "Standard Dual Pack Box",
+          "visible_facings": 2,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Stacked on the right side"
+        }
+      ]
+    },
+    {
+      "shelf_level": 4,
+      "position_description": "Lower Middle Shelf",
+      "zone_quality": "Medium - Kids Eye Level",
+      "items": [
+        {
+          "item_id": "SKU-UNK-002",
+          "brand": "Unknown",
+          "product_name": "Beach Buckets Set",
+          "packaging_variant": "Green/Yellow Nested Buckets",
+          "visible_facings": 3,
+          "is_stacked": false,
+          "is_nested": true,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Items nested inside each other"
+        },
+        {
+          "item_id": "SKU-NRF-006",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Hop-Chomp",
+          "packaging_variant": "Teal Shark Shape Box",
+          "visible_facings": 2,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Stacked vertically"
+        },
+        {
+          "item_id": "SKU-NRF-007",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Minecraft Trident",
+          "packaging_variant": "Trident Shaped Box Art",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": false,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Irregular box dimensions"
+        },
+        {
+          "item_id": "SKU-NRF-008",
+          "brand": "Nerf",
+          "product_name": "Super Soaker Minecraft Turtle",
+          "packaging_variant": "Green Turtle Box Art",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Green blocky graphics"
+        },
+        {
+          "item_id": "SKU-XS-003",
+          "brand": "X-Shot",
+          "product_name": "Skins",
+          "packaging_variant": "Sonic the Hedgehog Limited Edition",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Distinct character branding on box"
+        }
+      ]
+    },
+    {
+      "shelf_level": 5,
+      "position_description": "Low Shelf",
+      "zone_quality": "Low - High density / Cluttered",
+      "items": [
+        {
+          "item_id": "SKU-ZR-001-A",
+          "brand": "Zuru",
+          "product_name": "Bunch O Balloons",
+          "packaging_variant": "Blue Packaging Edition",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Distinct item due to blue packaging color"
+        },
+        {
+          "item_id": "SKU-ZR-001-B",
+          "brand": "Zuru",
+          "product_name": "Bunch O Balloons",
+          "packaging_variant": "Yellow/Orange Packaging Edition",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Distinct item due to yellow/orange packaging color"
+        },
+        {
+          "item_id": "SKU-ZR-001-C",
+          "brand": "Zuru",
+          "product_name": "Bunch O Balloons",
+          "packaging_variant": "Red/Pink Packaging Edition",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Distinct item due to red/pink packaging color"
+        },
+        {
+          "item_id": "SKU-MIX-001",
+          "brand": "Mixed/Multiple",
+          "product_name": "Small Impulse Toys & Water Blasters",
+          "packaging_variant": "Assorted Small Carded Items",
+          "visible_facings": 6,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": false,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "High clutter zone, difficult for discrete OCR extraction"
+        }
+      ]
+    },
+    {
+      "shelf_level": 6,
+      "position_description": "Bottom Secondary Shelf",
+      "zone_quality": "Low - Floor proximity",
+      "items": [
+        {
+          "item_id": "SKU-PD-002",
+          "brand": "Play Day",
+          "product_name": "T-Ball & Pitching Play Set",
+          "packaging_variant": "Vertical White/Blue Box",
+          "visible_facings": 2,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Standing vertically on the left"
+        },
+        {
+          "item_id": "SKU-UNK-003",
+          "brand": "Unknown",
+          "product_name": "Ultra Rockets",
+          "packaging_variant": "Black/Blue Box Art",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Positioned next to T-Ball set"
+        },
+        {
+          "item_id": "SKU-AF-001-A",
+          "brand": "Adventure Force",
+          "product_name": "Aqua Squad Multi-Pack",
+          "packaging_variant": "Green/Blue Blaster Array Visible",
+          "visible_facings": 1,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Bottom of the stack"
+        },
+        {
+          "item_id": "SKU-AF-001-B",
+          "brand": "Adventure Force",
+          "product_name": "Aqua Squad Multi-Pack",
+          "packaging_variant": "Green/Orange Blaster Array Visible",
+          "visible_facings": 1,
+          "is_stacked": true,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Top of the stack, different colored components inside translucent packaging"
+        },
+        {
+          "item_id": "SKU-PD-003",
+          "brand": "Play Day",
+          "product_name": "Water Blaster",
+          "packaging_variant": "Red/Green Shelf Ready Packaging",
+          "visible_facings": 2,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Contained within a cardboard dispenser box (SRP)"
+        }
+      ]
+    },
+    {
+      "shelf_level": 7,
+      "position_description": "Floor Bin / Bottom Shelf",
+      "zone_quality": "Very Low - Bulk storage",
+      "items": [
+        {
+          "item_id": "SKU-PD-004",
+          "brand": "Play Day",
+          "product_name": "Jump Ropes / Mega Jump",
+          "packaging_variant": "Red Bulk Display Tray",
+          "visible_facings": 4,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Loose items placed inside an open tray, slight disarray"
+        },
+        {
+          "item_id": "SKU-PD-005",
+          "brand": "Play Day",
+          "product_name": "Mini Sports Balls",
+          "packaging_variant": "Square Box with Football/Baseball Art",
+          "visible_facings": 1,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Single box on display"
+        },
+        {
+          "item_id": "SKU-PD-006",
+          "brand": "Play Day",
+          "product_name": "LED Inflatable Bouncer",
+          "packaging_variant": "White Box with Pink/Purple Accents",
+          "visible_facings": 2,
+          "is_stacked": false,
+          "is_nested": false,
+          "price_tag": {
+            "detected": true,
+            "amount": null,
+            "currency": null
+          },
+          "visual_notes": "Two identical boxes placed side by side"
+        }
+      ]
+    }
+  ]
+}
