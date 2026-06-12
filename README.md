@@ -5,7 +5,7 @@ Pharmacy shelf image analysis dashboard (Next.js + Prisma + Gemini).
 ## Getting Started
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/yonatanblum/shelfi.git
 cd shelfi
 cp .env.example .env
 # Add your GEMINI_API_KEY to .env
