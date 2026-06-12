@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model ShelfAnalysis {
+  id                          String   @id @default(cuid())
+  imageUrl                    String
+  sourceImage                 String?
+  pocProject                  String?
+  targetClient                String?
+  confidenceScore             Float
+  totalShelvesDetected        Int
+  estimatedUniqueItems        Int
+  shareOfShelfByBrand         Json
+  premiumPlacementUtilization Json
+  overallPriceTagCompliance   Float
+  uploadedAt                  DateTime @default(now())
+  shelves                     Shelf[]
+}
+
+model Shelf {
+  id                  String        @id @default(cuid())
+  analysisId          String
+  analysis            ShelfAnalysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  shelfLevel          Int
+  positionDescription String
+  zoneQuality         String
+  items               ShelfItem[]
+}
+
+model ShelfItem {
+  id               String  @id @default(cuid())
+  shelfId          String
+  shelf            Shelf   @relation(fields: [shelfId], references: [id], onDelete: Cascade)
+  itemId           String
+  brand            String
+  productName      String
+  packagingVariant String
+  visibleFacings   Int
+  isStacked        Boolean
+  isNested         Boolean
+  priceTagDetected Boolean
+  priceAmount      Float?
+  priceCurrency    String?
+  visualNotes      String
+}
