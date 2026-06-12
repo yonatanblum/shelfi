@@ -1,22 +1,37 @@
 "use server";
 
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
 
 import { analyzeShelfImage } from "@/lib/gemini/analyze-shelf-image";
 import { prisma } from "@/lib/prisma";
 import {
+  logAnalysisCompleted,
+  logAnalysisFailed,
+  logFileSaved,
+  logPersistCompleted,
+  logUploadStarted,
+} from "@/lib/shelf-analysis/analysis-logger";
+import {
+  measureAsync,
+  type ShelfAnalysisTiming,
+} from "@/lib/shelf-analysis/analysis-timing";
+import {
   buildAnalysisCreateInput,
   mapAnalysisToRecord,
 } from "@/lib/shelf-analysis/persist-analysis";
+import {
+  buildShelfImageApiUrl,
+  createUniqueUploadKey,
+  resolveUploadPath,
+  UPLOADS_DIR,
+} from "@/lib/shelf-analysis/upload-paths";
 import type {
   DashboardAnalysisMetrics,
   ShelfAnalysisRecord,
   ShelfAnalysisResult,
 } from "@/lib/types/shelf-analysis";
-
-const UPLOADS_DIR = path.join(process.cwd(), "public", "uploads");
 
 const ANALYSIS_INCLUDE = {
   shelves: {
@@ -30,12 +45,182 @@ async function ensureUploadsDirectory(): Promise<void> {
   await mkdir(UPLOADS_DIR, { recursive: true });
 }
 
-function createUniqueFilename(originalName: string): string {
-  const extension = path.extname(originalName) || ".jpg";
-  const timestamp = Date.now();
-  const randomSuffix = Math.random().toString(36).slice(2, 8);
+export type SaveShelfImageResult =
+  | {
+      success: true;
+      uploadKey: string;
+      imageUrl: string;
+      fileSizeBytes: number;
+      writeFileMs: number;
+      mimeType: string;
+    }
+  | { success: false; error: string };
 
-  return `shelf-${timestamp}-${randomSuffix}${extension}`;
+export type AnalyzeSavedShelfImageResult =
+  | { success: true; analysis: ShelfAnalysisRecord; timing: ShelfAnalysisTiming }
+  | { success: false; error: string; timing?: ShelfAnalysisTiming };
+
+export async function saveShelfImageForAnalysis(
+  formData: FormData,
+): Promise<SaveShelfImageResult> {
+  const file = formData.get("file");
+
+  if (!(file instanceof File)) {
+    return { success: false, error: "No image file was provided." };
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return { success: false, error: "Only image files are supported." };
+  }
+
+  const logContext = { fileName: file.name };
+
+  try {
+    await ensureUploadsDirectory();
+
+    const uploadKey = createUniqueUploadKey(file.name);
+    const filePath = resolveUploadPath(uploadKey);
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    logUploadStarted(logContext, buffer.byteLength, file.type);
+
+    const { durationMs: writeFileMs } = await measureAsync(() =>
+      writeFile(filePath, buffer),
+    );
+
+    logFileSaved(logContext, writeFileMs, uploadKey);
+
+    return {
+      success: true,
+      uploadKey,
+      imageUrl: buildShelfImageApiUrl(uploadKey),
+      fileSizeBytes: buffer.byteLength,
+      writeFileMs,
+      mimeType: file.type,
+    };
+  } catch (error) {
+    logAnalysisFailed(logContext, "save", error, 0);
+
+    const message =
+      error instanceof Error ? error.message : "Failed to save shelf image.";
+
+    return { success: false, error: message };
+  }
+}
+
+export async function analyzeAndPersistSavedShelfImage(
+  uploadKey: string,
+  originalFileName: string,
+  mimeType: string,
+): Promise<AnalyzeSavedShelfImageResult> {
+  const logContext = { fileName: originalFileName, uploadKey };
+  const startedAt = Date.now();
+
+  try {
+    const filePath = resolveUploadPath(uploadKey);
+    const { result: buffer, durationMs: readFileMs } = await measureAsync(() =>
+      readFile(filePath),
+    );
+
+    const extracted = await analyzeShelfImage(buffer, mimeType, originalFileName);
+
+    if (extracted.analysis.shelves.length === 0) {
+      return {
+        success: false,
+        error: "No shelf data was detected in this image.",
+        timing: {
+          writeFileMs: readFileMs,
+          geminiMs: extracted.geminiMs,
+          parseMs: extracted.parseMs,
+          persistMs: 0,
+          totalMs: Date.now() - startedAt,
+          imageSizeBytes: extracted.imageSizeBytes,
+          model: extracted.model,
+          responseBytes: extracted.responseBytes,
+          shelvesDetected: 0,
+          itemsDetected: 0,
+        },
+      };
+    }
+
+    const imageUrl = buildShelfImageApiUrl(path.basename(uploadKey));
+    const { result: analysis, durationMs: persistMs } = await measureAsync(() =>
+      persistAnalysis(imageUrl, extracted.analysis, buffer, mimeType),
+    );
+
+    logPersistCompleted(logContext, persistMs, analysis.id);
+
+    const itemsDetected = extracted.analysis.shelves.reduce(
+      (total, shelf) => total + shelf.items.length,
+      0,
+    );
+    const timing: ShelfAnalysisTiming = {
+      writeFileMs: readFileMs,
+      geminiMs: extracted.geminiMs,
+      parseMs: extracted.parseMs,
+      persistMs,
+      totalMs: Date.now() - startedAt,
+      imageSizeBytes: extracted.imageSizeBytes,
+      model: extracted.model,
+      responseBytes: extracted.responseBytes,
+      shelvesDetected: extracted.analysis.shelves.length,
+      itemsDetected,
+    };
+
+    logAnalysisCompleted(logContext, timing, timing);
+
+    revalidatePath("/");
+    revalidatePath("/upload");
+    revalidatePath(`/analysis/${analysis.id}`);
+
+    return { success: true, analysis, timing };
+  } catch (error) {
+    logAnalysisFailed(logContext, "analyze", error, Date.now() - startedAt);
+
+    const message =
+      error instanceof Error ? error.message : "Failed to process shelf image.";
+
+    return { success: false, error: message };
+  }
+}
+
+export async function uploadShelfImage(
+  formData: FormData,
+): Promise<
+  | { success: true; analysis: ShelfAnalysisRecord; timing: ShelfAnalysisTiming }
+  | { success: false; error: string }
+> {
+  const file = formData.get("file");
+
+  if (!(file instanceof File)) {
+    return { success: false, error: "No image file was provided." };
+  }
+
+  const saved = await saveShelfImageForAnalysis(formData);
+
+  if (!saved.success) {
+    return saved;
+  }
+
+  const analyzed = await analyzeAndPersistSavedShelfImage(
+    saved.uploadKey,
+    file.name,
+    saved.mimeType,
+  );
+
+  if (!analyzed.success) {
+    return analyzed;
+  }
+
+  return {
+    success: true,
+    analysis: analyzed.analysis,
+    timing: {
+      ...analyzed.timing,
+      writeFileMs: saved.writeFileMs,
+      totalMs: saved.writeFileMs + analyzed.timing.totalMs,
+    },
+  };
 }
 
 function percentMapToSortedArray(
@@ -49,66 +234,15 @@ function percentMapToSortedArray(
 async function persistAnalysis(
   imageUrl: string,
   analysis: ShelfAnalysisResult,
+  imageData?: Buffer,
+  imageMimeType?: string,
 ): Promise<ShelfAnalysisRecord> {
   const created = await prisma.shelfAnalysis.create({
-    data: buildAnalysisCreateInput({ imageUrl, analysis }),
+    data: buildAnalysisCreateInput({ imageUrl, analysis, imageData, imageMimeType }),
     include: ANALYSIS_INCLUDE,
   });
 
   return mapAnalysisToRecord(created);
-}
-
-export async function uploadShelfImage(
-  formData: FormData,
-): Promise<
-  { success: true; analysis: ShelfAnalysisRecord } | { success: false; error: string }
-> {
-  const file = formData.get("file");
-
-  if (!(file instanceof File)) {
-    return { success: false, error: "No image file was provided." };
-  }
-
-  if (!file.type.startsWith("image/")) {
-    return { success: false, error: "Only image files are supported." };
-  }
-
-  try {
-    await ensureUploadsDirectory();
-
-    const filename = createUniqueFilename(file.name);
-    const filePath = path.join(UPLOADS_DIR, filename);
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    await writeFile(filePath, buffer);
-
-    const extractedAnalysis = await analyzeShelfImage(
-      buffer,
-      file.type,
-      file.name,
-    );
-
-    if (extractedAnalysis.shelves.length === 0) {
-      return {
-        success: false,
-        error: "No shelf data was detected in this image.",
-      };
-    }
-
-    const imageUrl = `/uploads/${filename}`;
-    const analysis = await persistAnalysis(imageUrl, extractedAnalysis);
-
-    revalidatePath("/");
-    revalidatePath("/upload");
-    revalidatePath(`/analysis/${analysis.id}`);
-
-    return { success: true, analysis };
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Failed to process shelf image.";
-
-    return { success: false, error: message };
-  }
 }
 
 export async function importShelfAnalysis(

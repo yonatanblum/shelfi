@@ -114,6 +114,35 @@ export function formatDuration(ms: number): string {
   return `${minutes}m ${seconds.toString().padStart(2, "0")}s`;
 }
 
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+export function formatTimingBreakdown(timing: {
+  writeFileMs: number;
+  geminiMs: number;
+  parseMs: number;
+  persistMs: number;
+  totalMs: number;
+}): string {
+  const geminiShare = Math.round((timing.geminiMs / timing.totalMs) * 100);
+
+  return [
+    `save ${formatDuration(timing.writeFileMs)}`,
+    `Gemini ${formatDuration(timing.geminiMs)} (${geminiShare}%)`,
+    `parse ${formatDuration(timing.parseMs)}`,
+    `persist ${formatDuration(timing.persistMs)}`,
+  ].join(" · ");
+}
+
 export function formatLogTimestamp(timestamp: number): string {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",

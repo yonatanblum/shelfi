@@ -6,6 +6,8 @@ import type {
 
 type PersistShelfAnalysisInput = {
   imageUrl: string;
+  imageData?: Buffer;
+  imageMimeType?: string;
   analysis: ShelfAnalysisResult;
 };
 
@@ -63,10 +65,12 @@ export function mapAnalysisToRecord(
 export function buildAnalysisCreateInput(
   input: PersistShelfAnalysisInput,
 ): Prisma.ShelfAnalysisCreateInput {
-  const { analysis, imageUrl } = input;
+  const { analysis, imageUrl, imageData, imageMimeType } = input;
 
   return {
     imageUrl,
+    imageData: imageData ? new Uint8Array(imageData) : undefined,
+    imageMimeType: imageMimeType ?? null,
     sourceImage: analysis.source_image ?? null,
     pocProject: analysis.poc_project ?? null,
     targetClient: analysis.target_client ?? null,

@@ -70,6 +70,7 @@ export function AnalysisDetailView({ analysis }: AnalysisDetailViewProps) {
               src={analysis.imageUrl}
               alt={`Shelf image ${analysis.sourceImage ?? analysis.id}`}
               fill
+              unoptimized
               className="object-cover"
               sizes="320px"
             />

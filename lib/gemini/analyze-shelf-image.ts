@@ -4,6 +4,11 @@ import {
   SHELF_ANALYSIS_PROMPT,
   SHELF_ANALYSIS_RESPONSE_SCHEMA,
 } from "@/lib/gemini/shelf-analysis-schema";
+import {
+  logGeminiCompleted,
+  logGeminiStarted,
+} from "@/lib/shelf-analysis/analysis-logger";
+import { measureAsync } from "@/lib/shelf-analysis/analysis-timing";
 import type {
   PriceTag,
   Shelf,
@@ -11,6 +16,15 @@ import type {
   ShelfItem,
   ShelfStatisticsSummary,
 } from "@/lib/types/shelf-analysis";
+
+export type AnalyzeShelfImageResult = {
+  analysis: ShelfAnalysisResult;
+  geminiMs: number;
+  parseMs: number;
+  model: string;
+  imageSizeBytes: number;
+  responseBytes: number;
+};
 
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
@@ -26,7 +40,7 @@ function getGeminiApiKey(): string {
   return apiKey;
 }
 
-function getGeminiModelName(): string {
+export function getGeminiModelName(): string {
   return process.env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL;
 }
 
@@ -258,32 +272,60 @@ export async function analyzeShelfImage(
   imageBuffer: Buffer,
   mimeType: string,
   sourceFileName?: string,
-): Promise<ShelfAnalysisResult> {
+): Promise<AnalyzeShelfImageResult> {
+  const modelName = getGeminiModelName();
   const model = createGenerativeModel();
   const fileContext = sourceFileName
     ? `\nSource image filename: ${sourceFileName}`
     : "";
+  const logContext = { fileName: sourceFileName };
 
-  const result = await model.generateContent([
-    `${SHELF_ANALYSIS_PROMPT}${fileContext}`,
-    {
-      inlineData: {
-        data: imageBuffer.toString("base64"),
-        mimeType,
+  logGeminiStarted(logContext, modelName, imageBuffer.byteLength);
+
+  const { result: geminiResult, durationMs: geminiMs } = await measureAsync(() =>
+    model.generateContent([
+      `${SHELF_ANALYSIS_PROMPT}${fileContext}`,
+      {
+        inlineData: {
+          data: imageBuffer.toString("base64"),
+          mimeType,
+        },
       },
-    },
-  ]);
+    ]),
+  );
 
-  const responseText = result.response.text();
+  const responseText = geminiResult.response.text();
 
   if (!responseText) {
     throw new Error("Gemini returned an empty analysis response.");
   }
 
-  const analysis = parseShelfAnalysisResponse(responseText);
+  const { result: analysis, durationMs: parseMs } = await measureAsync(async () =>
+    parseShelfAnalysisResponse(responseText),
+  );
 
-  return {
+  const normalizedAnalysis: ShelfAnalysisResult = {
     ...analysis,
     source_image: sourceFileName ?? analysis.source_image,
+  };
+
+  const itemsDetected = normalizedAnalysis.shelves.reduce(
+    (total, shelf) => total + shelf.items.length,
+    0,
+  );
+
+  logGeminiCompleted(logContext, geminiMs, parseMs, {
+    responseBytes: Buffer.byteLength(responseText, "utf8"),
+    shelvesDetected: normalizedAnalysis.shelves.length,
+    itemsDetected,
+  });
+
+  return {
+    analysis: normalizedAnalysis,
+    geminiMs,
+    parseMs,
+    model: modelName,
+    imageSizeBytes: imageBuffer.byteLength,
+    responseBytes: Buffer.byteLength(responseText, "utf8"),
   };
 }

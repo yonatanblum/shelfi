@@ -3,14 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { uploadShelfImage } from "@/app/actions/shelf-analysis";
+import {
+  analyzeAndPersistSavedShelfImage,
+  saveShelfImageForAnalysis,
+} from "@/app/actions/shelf-analysis";
 import { UPLOAD_CONFIG } from "@/constants/upload-config";
 import {
   appendLog,
   computeInFlightProgress,
   computeRemainingMs,
   createLogEntry,
+  formatBytes,
   formatDuration,
+  formatTimingBreakdown,
   readStoredAverageDurationMs,
   stageFromProgress,
   storeAverageDurationMs,
@@ -90,12 +95,8 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
             estimatedRemainingMs: estimatedTotalMs,
             progressPercent: 6,
           },
-          "Upload started — sending image to the server.",
+          `Upload started — ${formatBytes(file.size)} image selected.`,
         ),
-      );
-
-      patchJob(jobId, (job) =>
-        appendLog(job, "Analyzing shelf layout and products with Gemini."),
       );
 
       lastLogAtRef.current.set(jobId, startedAt);
@@ -103,7 +104,52 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
       const formData = new FormData();
       formData.append("file", file);
 
-      const result = await uploadShelfImage(formData);
+      const saved = await saveShelfImageForAnalysis(formData);
+
+      if (!saved.success) {
+        const completedAt = Date.now();
+        patchJob(jobId, (job) =>
+          appendLog(
+            {
+              ...job,
+              stage: "error",
+              progressPercent: 100,
+              estimatedRemainingMs: 0,
+              completedAt,
+              error: saved.error,
+            },
+            `Upload failed — ${saved.error}`,
+          ),
+        );
+        toast.error(`${file.name}: ${saved.error}`);
+        return;
+      }
+
+      patchJob(jobId, (job) =>
+        appendLog(
+          {
+            ...job,
+            stage: "analyzing",
+            progressPercent: 12,
+          },
+          `Image saved in ${formatDuration(saved.writeFileMs)} — sending to Gemini for shelf extraction.`,
+        ),
+      );
+
+      patchJob(jobId, (job) =>
+        appendLog(
+          job,
+          `Gemini is analyzing layout, brands, facings, and price tags. This step usually takes the longest.`,
+        ),
+      );
+
+      lastLogAtRef.current.set(jobId, Date.now());
+
+      const result = await analyzeAndPersistSavedShelfImage(
+        saved.uploadKey,
+        file.name,
+        saved.mimeType,
+      );
       const completedAt = Date.now();
       const durationMs = completedAt - startedAt;
 
@@ -125,8 +171,28 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
         return;
       }
 
+      const { timing } = result;
+
       storeAverageDurationMs(durationMs);
       lastLogAtRef.current.delete(jobId);
+
+      patchJob(jobId, (job) =>
+        appendLog(
+          job,
+          `Gemini finished in ${formatDuration(timing.geminiMs)} — ${timing.shelvesDetected} shelves, ${timing.itemsDetected} items (${formatBytes(timing.responseBytes)} JSON).`,
+        ),
+      );
+
+      patchJob(jobId, (job) =>
+        appendLog(
+          {
+            ...job,
+            stage: "saving",
+            progressPercent: 95,
+          },
+          `Saved to dashboard in ${formatDuration(timing.persistMs)}.`,
+        ),
+      );
 
       patchJob(jobId, (job) =>
         appendLog(
@@ -137,7 +203,13 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
             estimatedRemainingMs: 0,
             completedAt,
           },
-          `Complete — ${result.analysis.totalShelvesDetected} shelves and ${result.analysis.estimatedUniqueItems} items detected in ${formatDuration(durationMs)}.`,
+          `Complete in ${formatDuration(durationMs)} — ${formatTimingBreakdown({
+            writeFileMs: saved.writeFileMs,
+            geminiMs: timing.geminiMs,
+            parseMs: timing.parseMs,
+            persistMs: timing.persistMs,
+            totalMs: durationMs,
+          })}.`,
         ),
       );
 
@@ -247,7 +319,7 @@ export function useShelfUploadQueue(): UseShelfUploadQueueResult {
             lastLogAtRef.current.set(job.id, Date.now());
             nextJob = appendLog(
               nextJob,
-              `Still analyzing — about ${formatDuration(estimatedRemainingMs)} remaining.`,
+              `Still waiting on Gemini (${formatDuration(elapsedMs)} elapsed, ~${formatDuration(estimatedRemainingMs)} left).`,
             );
           }
 

@@ -10,6 +10,8 @@ datasource db {
 model ShelfAnalysis {
   id                          String   @id @default(cuid())
   imageUrl                    String
+  imageData                   Bytes?
+  imageMimeType               String?
   sourceImage                 String?
   pocProject                  String?
   targetClient                String?
